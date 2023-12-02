@@ -27,6 +27,10 @@ jobs:
         run: |
           npm install -g serverless
 
+      - name: Install Serverless Plugin
+        run: |
+          sls plugin install -n serverless-python-requirements
+
       - name: Deploy to AWS
         run: |
           sls deploy
