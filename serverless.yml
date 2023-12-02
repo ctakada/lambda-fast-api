@@ -1,0 +1,102 @@
+service: user-registration-service
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: us-east-1
+  stage: dev
+  environment:
+    DYNAMODB_TABLE: UsersTable
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "arn:aws:dynamodb:us-east-1:*:table/UsersTable"
+
+plugins:
+  - serverless-python-requirements
+
+functions:
+  app:
+    name: ${sls:stage}-user-registration-service
+    handler: src/main.handler
+    layers:
+      - {Ref: PythonRequirementsLambdaLayer}
+    events:
+      - http:
+          path: /{proxy+}
+          method: any
+    timeout: 30
+    memorySize: 1024
+    architecture: x86_64
+    environment:
+      DYNAMODB_TABLE: ${self:provider.environment.DYNAMODB_TABLE}
+
+custom:
+  bucket: ${env:BUCKET, 'user-registration-service'}
+  pythonRequirements:
+    dockerizedPip: true
+    layer:
+      PythonRequirementsLambdaLayer:
+        name: ${self:service}-${self:provider.stage}-python-requirements
+        description: A layer to hold python requirements
+        compatibleRuntimes:
+          - python3.9
+        licenseInfo: 'MIT'
+        compatibleArchitectures:
+          - x86_64
+
+package:
+  patterns:
+    - src/**
+    - requirements.txt
+    - "!node_modules/**"
+    - "!.gitignore"
+    - "!.git/**"
+    - "!.github/**"
+    - "!venv/**"
+    - "!tests/**"
+    - "!__pycache__/**"
+    - "!.env"
+    - "!package-lock.json"
+    - "!package.json"
+    - "!serverless.yml"
+    - "!*.md"
+    - "!*.iml"
+    - "!test_main.http"
+    - "!.idea/**"
+    - "!.serverless/**"
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: userID
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: N
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userID
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+          - IndexName: EmailIndex
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
