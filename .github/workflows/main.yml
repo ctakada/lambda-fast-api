@@ -30,6 +30,7 @@ jobs:
       - name: Install Serverless Plugin
         run: |
           sls plugin install -n serverless-python-requirements
+          sls plugin install -n serverless-offline
 
       - name: Deploy to AWS
         run: |
