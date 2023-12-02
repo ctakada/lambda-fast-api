@@ -19,15 +19,12 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
           Resource: "arn:aws:dynamodb:us-east-1:*:table/UsersTable"
-  apiGateway:
-    restApi:
-      policy: # Política de recursos de API Gateway
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal: '*'
-            Action: execute-api:Invoke
-            Resource: '*'
+  resourcePolicy:
+    - Effect: Allow
+      Principal: '*'
+      Action: execute-api:Invoke
+      Resource: '*'
+
 plugins:
   - serverless-python-requirements
   - serverless-offline
