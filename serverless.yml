@@ -1,4 +1,6 @@
 service: user-registration-service
+configValidationMode: error
+frameworkVersion: '3'
 
 provider:
   name: aws
@@ -37,6 +39,9 @@ functions:
     events:
       - http:
           path: /{proxy+}
+          method: any
+      - http:
+          path: /
           method: any
     timeout: 30
     memorySize: 1024
