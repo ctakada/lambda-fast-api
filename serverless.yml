@@ -1,3 +1,4 @@
+#file: noinspection YAMLSchemaValidation
 service: user-registration-service
 configValidationMode: error
 frameworkVersion: '3'
@@ -21,15 +22,25 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
           Resource: "arn:aws:dynamodb:us-east-1:*:table/UsersTable"
-  resourcePolicy:
-    - Effect: Allow
-      Principal: '*'
-      Action: execute-api:Invoke
-      Resource: '*'
 
 plugins:
   - serverless-python-requirements
   - serverless-offline
+
+custom:
+  bucket: ${env:BUCKET, 'user-registration-service'}
+  pythonRequirements:
+    dockerizedPip: true
+    layer:
+      PythonRequirementsLambdaLayer:
+        name: ${self:service}-${self:provider.stage}-python-requirements
+        description: A layer to hold python requirements
+        compatibleRuntimes:
+          - python3.9
+        licenseInfo: 'MIT'
+        compatibleArchitectures:
+          - x86_64
+
 functions:
   app:
     name: ${sls:stage}-user-registration-service
@@ -48,20 +59,6 @@ functions:
     architecture: x86_64
     environment:
       DYNAMODB_TABLE: ${self:provider.environment.DYNAMODB_TABLE}
-
-custom:
-  bucket: ${env:BUCKET, 'user-registration-service'}
-  pythonRequirements:
-    dockerizedPip: true
-    layer:
-      PythonRequirementsLambdaLayer:
-        name: ${self:service}-${self:provider.stage}-python-requirements
-        description: A layer to hold python requirements
-        compatibleRuntimes:
-          - python3.9
-        licenseInfo: 'MIT'
-        compatibleArchitectures:
-          - x86_64
 
 package:
   patterns:
