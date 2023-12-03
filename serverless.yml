@@ -53,7 +53,7 @@ functions:
           method: any
       - http:
           path: /
-          method: any
+          method: get
     timeout: 30
     memorySize: 1024
     architecture: x86_64
